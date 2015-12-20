@@ -300,6 +300,25 @@
 	
 	return *statement;
 }
+- (sqlite3_stmt *)queryStatementWithColumnNames:(NSString*)columnNames
+{
+    sqlite3_stmt **statement = &queryStatement;
+    if (*statement == NULL)
+    {
+        NSString *string = [NSString stringWithFormat:
+                            @"SELECT \"rowid\"%2$@%3$@ FROM \"%1$@\" WHERE \"%1$@\" MATCH ?;", [parent tableName],columnNames.length>0?@",":"",columnNames];
+        
+        sqlite3 *db = databaseConnection->db;
+        
+        int status = sqlite3_prepare_v2(db, [string UTF8String], -1, statement, NULL);
+        if (status != SQLITE_OK)
+        {
+            YDBLogError(@"%@: Error creating prepared statement: %d %s", THIS_METHOD, status, sqlite3_errmsg(db));
+        }
+    }
+    
+    return *statement;
+}
 
 - (sqlite3_stmt *)querySnippetStatement
 {
