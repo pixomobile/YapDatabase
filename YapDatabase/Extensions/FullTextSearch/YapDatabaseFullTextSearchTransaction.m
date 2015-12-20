@@ -963,7 +963,10 @@ static NSString *const ext_key__version_deprecated = @"version";
              followedByClause:(NSString *)clause
                    usingBlock:(void (^)(NSString *collection, NSString *key, BOOL *stop))block;
 {
-    [self enumerateRowidsAndColumnsMatching:query columnNames:columnNames usingBlock:^(int64_t rowid, BOOL *stop) {
+    [self enumerateRowidsAndColumnsMatching:query
+                                columnNames:columnNames
+                           followedByClause:(NSString *)clause
+                                 usingBlock:^(int64_t rowid, BOOL *stop) {
         
         YapCollectionKey *ck = [databaseTransaction collectionKeyForRowid:rowid];
         
