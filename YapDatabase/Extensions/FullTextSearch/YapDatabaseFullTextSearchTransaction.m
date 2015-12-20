@@ -899,13 +899,15 @@ static NSString *const ext_key__version_deprecated = @"version";
 }
 
 - (void)enumerateRowidsAndColumnsMatching:(NSString *)query
-                    columnNames:(NSString*)columnNames
+                              columnNames:(NSString*)columnNames
+                         followedByClause:(NSString *)clause
                      usingBlock:(void (^)(int64_t rowid, BOOL *stop))block
 {
     if (block == nil) return;
     if ([query length] == 0) return;
     
-    sqlite3_stmt *statement = [parentConnection queryStatement];
+    sqlite3_stmt *statement = [parentConnection queryStatementWithColumnNames:columnNames
+                                                             followedByClause:clause];
     if (statement == NULL) return;
     
     BOOL stop = NO;
@@ -958,7 +960,8 @@ static NSString *const ext_key__version_deprecated = @"version";
 
 - (void)enumerateKeysMatching:(NSString *)query
                   columnNames:(NSString *)columnNames
-                   usingBlock:(void (^)(NSString *collection, NSString *key, BOOL *stop))block
+             followedByClause:(NSString *)clause
+                   usingBlock:(void (^)(NSString *collection, NSString *key, BOOL *stop))block;
 {
     [self enumerateRowidsAndColumnsMatching:query columnNames:columnNames usingBlock:^(int64_t rowid, BOOL *stop) {
         

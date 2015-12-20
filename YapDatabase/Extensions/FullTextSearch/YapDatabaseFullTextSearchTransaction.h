@@ -36,6 +36,7 @@ NS_ASSUME_NONNULL_BEGIN
                    usingBlock:(void (^)(NSString *collection, NSString *key, BOOL *stop))block;
 - (void)enumerateKeysMatching:(NSString *)query
                   columnNames:(NSString *)columnNames
+             followedByClause:(NSString *)clause
                    usingBlock:(void (^)(NSString *collection, NSString *key, BOOL *stop))block;
 
 - (void)enumerateKeysAndMetadataMatching:(NSString *)query
