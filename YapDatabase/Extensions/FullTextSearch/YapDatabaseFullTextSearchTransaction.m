@@ -906,8 +906,7 @@ static NSString *const ext_key__version_deprecated = @"version";
     if (block == nil) return;
     if ([query length] == 0) return;
     
-    sqlite3_stmt *statement = [parentConnection queryStatementWithColumnNames:columnNames
-                                                             followedByClause:clause];
+    sqlite3_stmt *statement = [parentConnection q
     if (statement == NULL) return;
     
     BOOL stop = NO;
