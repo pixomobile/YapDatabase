@@ -33,7 +33,10 @@
 
 - (void)enumerateKeysMatching:(NSString *)query
                    usingBlock:(void (^)(NSString *collection, NSString *key, BOOL *stop))block;
-
+- (void)enumerateKeysMatching:(NSString *)query
+                  columnNames:(NSString *)columnNames
+             followedByClause:(NSString *)clause
+                   usingBlock:(void (^)(NSString *collection, NSString *key, BOOL *stop))block;
 - (void)enumerateKeysAndMetadataMatching:(NSString *)query
                               usingBlock:(void (^)(NSString *collection, NSString *key, id metadata, BOOL *stop))block;
 

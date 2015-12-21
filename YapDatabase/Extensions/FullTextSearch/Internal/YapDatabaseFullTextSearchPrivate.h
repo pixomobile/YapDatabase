@@ -58,6 +58,8 @@
 - (sqlite3_stmt *)removeRowidStatement;
 - (sqlite3_stmt *)removeAllStatement;
 - (sqlite3_stmt *)queryStatement;
+- (sqlite3_stmt *)queryStatementWithColumnNames:(NSString*)columnNames
+                               followedByClause:(NSString *)clause;
 - (sqlite3_stmt *)querySnippetStatement;
 - (sqlite3_stmt *)rowidQueryStatement;
 - (sqlite3_stmt *)rowidQuerySnippetStatement;

@@ -894,6 +894,58 @@ static NSString *const ext_key__version_deprecated = @"version";
 		@throw [databaseTransaction mutationDuringEnumerationException];
 	}
 }
+- (void)enumerateRowidsAndColumnsMatching:(NSString *)query
+                              columnNames:(NSString*)columnNames
+                         followedByClause:(NSString *)clause
+                               usingBlock:(void (^)(int64_t rowid, BOOL *stop))block
+{
+    if (block == nil) return;
+    if ([query length] == 0) return;
+    
+    sqlite3_stmt *statement = [ftsConnection queryStatementWithColumnNames:columnNames followedByClause:clause];
+    if (statement == NULL) return;
+    
+    BOOL stop = NO;
+    isMutated = NO; // mutation during enumeration protection
+    
+    // SELECT "rowid" FROM "tableName" WHERE "tableName" MATCH ?;
+    
+    int const column_idx_rowid = SQLITE_COLUMN_START;
+    int const bind_idx_query   = SQLITE_BIND_START;
+    
+    YapDatabaseString _query; MakeYapDatabaseString(&_query, query);
+    sqlite3_bind_text(statement, bind_idx_query, _query.str, _query.length, SQLITE_STATIC);
+    
+    int status = sqlite3_step(statement);
+    if (status == SQLITE_ROW)
+    {
+        do
+        {
+            int64_t rowid = sqlite3_column_int64(statement, column_idx_rowid);
+            
+            block(rowid, &stop);
+            
+            if (stop || isMutated) break;
+            
+        } while ((status = sqlite3_step(statement)) == SQLITE_ROW);
+    }
+    
+    if ((status != SQLITE_DONE) && !stop && !isMutated)
+    {
+        YDBLogError(@"%@ - sqlite_step error: %d %s", THIS_METHOD,
+                    status, sqlite3_errmsg(databaseTransaction->connection->db));
+    }
+    
+    sqlite3_clear_bindings(statement);
+    sqlite3_reset(statement);
+    FreeYapDatabaseString(&_query);
+    
+    if (isMutated && !stop)
+    {
+        @throw [databaseTransaction mutationDuringEnumerationException];
+    }
+    
+}
 
 - (void)enumerateKeysMatching:(NSString *)query
                    usingBlock:(void (^)(NSString *collection, NSString *key, BOOL *stop))block
@@ -905,7 +957,21 @@ static NSString *const ext_key__version_deprecated = @"version";
 		block(ck.collection, ck.key, stop);
 	}];
 }
-
+- (void)enumerateKeysMatching:(NSString *)query
+                  columnNames:(NSString *)columnNames
+             followedByClause:(NSString *)clause
+                   usingBlock:(void (^)(NSString *collection, NSString *key, BOOL *stop))block;
+{
+    [self enumerateRowidsAndColumnsMatching:query
+                                columnNames:columnNames
+                           followedByClause:(NSString *)clause
+                                 usingBlock:^(int64_t rowid, BOOL *stop) {
+                                     
+                                     YapCollectionKey *ck = [databaseTransaction collectionKeyForRowid:rowid];
+                                     
+                                     block(ck.collection, ck.key, stop);
+                                 }];
+}
 - (void)enumerateKeysAndMetadataMatching:(NSString *)query
                               usingBlock:(void (^)(NSString *collection, NSString *key, id metadata, BOOL *stop))block
 {
